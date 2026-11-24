@@ -76,3 +76,65 @@ Second, execute Phase 1 right now:
   - [notebooks/.gitkeep](file:///d:/IEC_Project_01_Rag_System/notebooks/.gitkeep)
   - [frontend/.gitkeep](file:///d:/IEC_Project_01_Rag_System/frontend/.gitkeep)
   - [docs/AI_USAGE.md](file:///d:/IEC_Project_01_Rag_System/docs/AI_USAGE.md)
+
+
+### Entry #2: Move 2 - File Upload, Extraction, Label-Merging Chunking, Deduplication, and Document Endpoints
+- **Step / Prompt #**: 2
+- **Date & Time**: 2026-11-24 12:14:39 +05:00
+- **Model & Tool Used**: `Antigravity IDE - Gemini 3.8 Flash High`
+- **Key Configuration/Settings**:
+  - `GENERATION_MODEL`: `gemini-3.5-flash-lite`
+  - `EMBEDDING_MODEL`: `BAAI/bge-m3` (Fallback: `models/gemini-embedding-001`)
+  - `CHUNK_SIZE`: 450 tokens (~1800 characters)
+  - `CHUNK_OVERLAP`: 60 tokens (~240 characters)
+  - `RETRIEVAL_TOP_K`: 18
+  - `CONTEXT_CHUNKS`: 15
+  - `MIN_SIMILARITY`: 0.25
+  - `MAX_QUESTION_CHARS`: 1000
+  - `MAX_UPLOAD_MB`: 20 MB
+  - `API_TIMEOUT_SECONDS`: 30 s
+  - `TEMPERATURE`: 0.1
+  - `VECTOR_STORE`: Qdrant Local Disk mode (`./qdrant_data`), cosine distance, collection `rag_chunks`
+  - `SQLITE_MODE`: Write-Ahead Logging (WAL) mode via SQLAlchemy async
+- **Exact Prompt Text**:
+```text
+Follow `GEMINI.md` (remember to append Entry #2 to `docs/AI_USAGE.md`, and add `pytest-asyncio` to `requirements.txt`). We are on branch `feature/ingestion` implementing Move 2: File Upload, Extraction, Label-Merging Chunking, Deduplication, and Document Management.
+
+Build the following modules cleanly with full type hints, docstrings, and async support:
+1. `backend/app/ingestion/validator.py`:
+   - Validate file extension and MIME/magic bytes for `.pdf`, `.docx`, `.txt`, and `.md` (raise unified `415 Unsupported Media Type` otherwise).
+   - Enforce `MAX_UPLOAD_MB` from `config.py` (`413 Payload Too Large` if exceeded) and reject empty 0-byte files (`400 Bad Request`).
+   - Compute `sha256` hash of raw file bytes so duplicate uploads per user return `409 Conflict`.
+2. `backend/app/ingestion/extractor.py`:
+   - PDF (`import pymupdf`): extract text page-by-page, detect tables via `page.find_tables()` and convert them to Markdown (`table.to_markdown()`), strip repeated page headers/footers appearing across >60% of pages, and return `400 Bad Request` ("No extractable text found; scanned PDFs are not supported") if total extracted text is under 20 characters.
+   - DOCX (`python-docx`): read paragraphs and tables in document order while tracking the active heading (`Heading 1/2/3`) as the `page_or_section` citation label.
+   - TXT & MD: read UTF-8 text directly with section/line metadata.
+3. `backend/app/ingestion/chunker.py`:
+   - Implement a pre-split normalization pass that detects short standalone badge/label lines (<40 chars, e.g. "Tactic 1" or "Section A") sitting directly before a heading and merges them into that heading line so labels are never stranded at the end of a previous chunk.
+   - Split text using `RecursiveCharacterTextSplitter` (~450 tokens / ~1800 chars, ~60 tokens / ~240 chars overlap) and prepend `[File: {file_name} | Location: {page_or_section}]` to each chunk before embedding.
+   - Scan chunks for suspicious embedded prompt-injection phrases (e.g., "ignore previous instructions") and flag `has_injection_warning=True` in metadata without executing them.
+4. `backend/app/ingestion/vector_store.py`:
+   - Wrap `QdrantClient(path="./qdrant_data")` (cosine distance, collection `rag_chunks`), supporting `BAAI/bge-m3` embeddings (with automatic fallback to `gemini-embedding-001` via `google-genai` if `EMBEDDING_MODEL` starts with `gemini`).
+   - Store payload `{user_id, document_id, file_name, page_or_section, chunk_index, text, sha256_hash, has_injection_warning}` and implement `delete_by_document_id(user_id, document_id)`.
+5. `backend/app/ingestion/service.py` & `backend/app/main.py` routes:
+   - Wire `POST /documents` (`201 Created`), `GET /documents` (`200 OK`), `GET /documents/{doc_id}` (`200` / `404`), and `DELETE /documents/{doc_id}` (`204 No Content` / `404`, deleting from both Qdrant and SQLite). Keep `main.py` thin—routes only call `ingestion/service.py`.
+6. `tests/test_ingestion.py` & `notebooks/01_ingestion_pipeline.ipynb`:
+   - Add automated tests in `tests/test_ingestion.py` (mocking the embedding model for fast offline execution) covering valid upload, `409` duplicate rejection, `400` empty/scanned PDF rejection, `415` bad file type, short-label `"Tactic 1"` heading merge, prompt-injection metadata flagging, and `DELETE /documents/{doc_id}`. Run `D:\conda_envs\dsc293_env\python.exe -m pytest` to verify all tests pass.
+   - Create `notebooks/01_ingestion_pipeline.ipynb` demonstrating extraction, label-merging chunking, embedding, and Qdrant storage step-by-step on sample files.
+
+Commit completed work to `feature/ingestion` with message `"feat(ingestion): add validation, extraction, label-merging chunker, and document endpoints"`.
+```
+- **Files Created/Updated**:
+  - [requirements.txt](file:///d:/IEC_Project_01_Rag_System/requirements.txt)
+  - [pytest.ini](file:///d:/IEC_Project_01_Rag_System/pytest.ini)
+  - [backend/app/ingestion/validator.py](file:///d:/IEC_Project_01_Rag_System/backend/app/ingestion/validator.py)
+  - [backend/app/ingestion/extractor.py](file:///d:/IEC_Project_01_Rag_System/backend/app/ingestion/extractor.py)
+  - [backend/app/ingestion/chunker.py](file:///d:/IEC_Project_01_Rag_System/backend/app/ingestion/chunker.py)
+  - [backend/app/ingestion/vector_store.py](file:///d:/IEC_Project_01_Rag_System/backend/app/ingestion/vector_store.py)
+  - [backend/app/ingestion/service.py](file:///d:/IEC_Project_01_Rag_System/backend/app/ingestion/service.py)
+  - [backend/app/ingestion/router.py](file:///d:/IEC_Project_01_Rag_System/backend/app/ingestion/router.py)
+  - [backend/app/main.py](file:///d:/IEC_Project_01_Rag_System/backend/app/main.py)
+  - [tests/conftest.py](file:///d:/IEC_Project_01_Rag_System/tests/conftest.py)
+  - [tests/test_ingestion.py](file:///d:/IEC_Project_01_Rag_System/tests/test_ingestion.py)
+  - [notebooks/01_ingestion_pipeline.ipynb](file:///d:/IEC_Project_01_Rag_System/notebooks/01_ingestion_pipeline.ipynb)
+  - [docs/AI_USAGE.md](file:///d:/IEC_Project_01_Rag_System/docs/AI_USAGE.md)

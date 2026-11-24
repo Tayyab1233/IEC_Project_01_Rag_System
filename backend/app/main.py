@@ -22,6 +22,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.app.config import get_settings
 from backend.app.db import init_db
+from backend.app.ingestion.router import router as documents_router
 from backend.app.schemas import HealthResponse, UnifiedErrorResponse
 
 # Configure structured logging
@@ -176,6 +177,11 @@ def create_app() -> FastAPI:
             app_env=settings.APP_ENV,
             version="1.0.0",
         )
+
+    # -------------------------------------------------------------------------
+    # Feature Routers (Routes only - no business logic in main.py)
+    # -------------------------------------------------------------------------
+    app.include_router(documents_router)
 
     return app
 
