@@ -193,3 +193,50 @@ Only after writing all files, run `D:\conda_envs\dsc293_env\python.exe -m pytest
   - [tests/test_chat.py](file:///d:/IEC_Project_01_Rag_System/tests/test_chat.py)
   - [notebooks/02_retrieval_and_rag.ipynb](file:///d:/IEC_Project_01_Rag_System/notebooks/02_retrieval_and_rag.ipynb)
   - [docs/AI_USAGE.md](file:///d:/IEC_Project_01_Rag_System/docs/AI_USAGE.md)
+
+
+### Entry #4: Move 4 - RAG Evaluation Harness, Interactive Frontend Web UI, Evaluation Notebook, and Final README
+- **Step / Prompt #**: 4
+- **Date & Time**: 2026-11-24 18:42:20 +05:00
+- **Model & Tool Used**: `Antigravity IDE - Gemini 3.8 Flash High`
+- **Key Configuration/Settings**:
+  - `GENERATION_MODEL`: `gemini-2.5-flash`
+  - `EMBEDDING_MODEL`: `BAAI/bge-m3`
+  - `EVALUATION_CASES`: 15 golden cases (factual, synthesis, out-of-scope, prompt-injection)
+  - `EVAL_SLEEP_SECONDS`: 3.0 s (rate limit safety)
+  - `DEFAULT_INTERPRETER`: `D:\conda_envs\dsc293_env\python.exe`
+  - `WEB_UI_ROUTE`: `/ui` with root `/` redirect
+- **Exact Prompt Text**:
+```text
+Do NOT run any Python/Conda environment discovery commands—our verified interpreter is strictly `D:\conda_envs\dsc293_env\python.exe`. Follow `GEMINI.md` strictly (including full type hints, docstrings, thin routes, multi-tenant `user_id` isolation, and appending Entry #4 to `docs/AI_USAGE.md`).
+
+First, merge `feature/rag-chat` into `main` cleanly, then create and switch to a new branch `feature/eval-ui` for Move 4: RAG Evaluation Harness, Interactive Frontend Web UI, Evaluation Notebook, and Final README. Write all files first before running any terminal command:
+
+1. `evals/golden_dataset.json` & `evals/run_eval.py`:
+   - Create `evals/golden_dataset.json` with 15 realistic evaluation cases spanning a sample technical/policy corpus: in-domain factual questions, multi-chunk synthesis questions, out-of-scope questions expecting `refused=True`, and prompt-injection queries expecting `400` rejection.
+   - Implement `evals/run_eval.py` to compute retrieval metrics (`Recall@k`, `MRR`), guardrail accuracy (refusal & injection block rate), and RAGAS-style generation quality metrics (`faithfulness`, `answer_relevancy`, `context_precision`, `context_recall` using `ragas` with Gemini or a structured LLM-as-a-judge / deterministic fallback).
+   - Include a `--sleep-seconds` rate-limit delay (default `3.0`s for Gemini Free Tier RPM safety) and an `--offline` mock mode for zero-quota CI runs, saving outputs to `evals/results/eval_report.json` and `evals/results/eval_report.md`.
+2. `frontend/index.html`, `frontend/styles.css`, `frontend/app.js` & FastAPI Static Serving:
+   - Build a clean, modern, responsive single-page web UI (vanilla HTML/CSS/JS—no heavy Node build step needed) with:
+     - Active Tenant (`user_id`) selector so evaluators can test multi-tenant isolation (`user_a` vs `user_b`) live,
+     - Document manager panel to upload (PDF, DOCX, TXT, MD), view, and delete documents via `/documents`,
+     - Grounded Chat panel wired to `POST /chat` showing inline citations, expandable retrieved chunk cards with relevance scores, latency/token badges, and clear refusal/security alert banners.
+   - Mount `/ui` (and redirect `/` or serve static assets cleanly) in `backend/app/main.py` while keeping route handlers thin.
+3. `tests/test_eval_and_ui.py`, `notebooks/03_evaluation_and_error_analysis.ipynb`, & `README.md`:
+   - Add `tests/test_eval_and_ui.py` verifying the offline evaluation runner, metric calculations, report generation, and `/ui` frontend serving.
+   - Create `notebooks/03_evaluation_and_error_analysis.ipynb` running the offline/live evaluation harness, displaying metric tables, and analyzing failure/refusal cases.
+   - Write a comprehensive, portfolio-ready root `README.md` covering system architecture, multi-tenant security & prompt-injection guardrails, quickstart setup (`dsc293_env`), API endpoint reference, evaluation methodology, and project structure.
+
+Only after writing all files, append Entry #4 to `docs/AI_USAGE.md`, run `D:\conda_envs\dsc293_env\python.exe -m pytest -v` to confirm all tests pass, commit to `feature/eval-ui` with message `"feat(eval-ui): add RAGAS evaluation harness, frontend web UI, and README"`, and merge `feature/eval-ui` cleanly into `main`.
+```
+- **Files Created/Updated**:
+  - [evals/golden_dataset.json](file:///d:/IEC_Project_01_Rag_System/evals/golden_dataset.json)
+  - [evals/run_eval.py](file:///d:/IEC_Project_01_Rag_System/evals/run_eval.py)
+  - [frontend/index.html](file:///d:/IEC_Project_01_Rag_System/frontend/index.html)
+  - [frontend/styles.css](file:///d:/IEC_Project_01_Rag_System/frontend/styles.css)
+  - [frontend/app.js](file:///d:/IEC_Project_01_Rag_System/frontend/app.js)
+  - [backend/app/main.py](file:///d:/IEC_Project_01_Rag_System/backend/app/main.py)
+  - [tests/test_eval_and_ui.py](file:///d:/IEC_Project_01_Rag_System/tests/test_eval_and_ui.py)
+  - [notebooks/03_evaluation_and_error_analysis.ipynb](file:///d:/IEC_Project_01_Rag_System/notebooks/03_evaluation_and_error_analysis.ipynb)
+  - [README.md](file:///d:/IEC_Project_01_Rag_System/README.md)
+  - [docs/AI_USAGE.md](file:///d:/IEC_Project_01_Rag_System/docs/AI_USAGE.md)

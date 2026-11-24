@@ -17,7 +17,8 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.app.config import get_settings
@@ -180,10 +181,23 @@ def create_app() -> FastAPI:
         )
 
     # -------------------------------------------------------------------------
+    # Root Redirect to Interactive UI
+    # -------------------------------------------------------------------------
+    @app.get("/", include_in_schema=False)
+    async def root_redirect():
+        """Redirect root URL to the interactive frontend UI."""
+        return RedirectResponse(url="/ui")
+
+    # -------------------------------------------------------------------------
     # Feature Routers (Routes only - no business logic in main.py)
     # -------------------------------------------------------------------------
     app.include_router(documents_router)
     app.include_router(chat_router)
+
+    # -------------------------------------------------------------------------
+    # Mount Frontend Web UI Static Files
+    # -------------------------------------------------------------------------
+    app.mount("/ui", StaticFiles(directory="frontend", html=True), name="frontend")
 
     return app
 

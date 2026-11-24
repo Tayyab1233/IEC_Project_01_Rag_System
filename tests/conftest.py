@@ -16,25 +16,33 @@ from backend.app.ingestion.vector_store import VectorStore, set_vector_store
 from backend.app.main import create_app
 
 
+STOP_WORDS = {
+    "what", "is", "the", "for", "in", "and", "or", "to", "a", "an",
+    "of", "with", "at", "by", "from", "on", "are", "must", "be", "it",
+    "this", "that", "these", "those", "how", "do", "you", "its", "all",
+}
+
+
 def mock_embedder(texts: List[str]) -> List[List[float]]:
-    """Fast deterministic mock embedder generating distinct 16-dim normalized vectors."""
+    """Fast deterministic mock embedder generating distinct 64-dim normalized vectors."""
     import hashlib
 
+    dim = 64
     embeddings = []
     for text in texts:
-        vec = [0.0] * 16
+        vec = [0.0] * dim
         words = text.lower().split()
         if not words:
             words = ["empty"]
         for word in words:
-            h = int(hashlib.md5(word.encode()).hexdigest(), 16)
-            for i in range(16):
-                vec[i] += ((h >> (i * 4)) & 0xF) - 7.5
+            h = int(hashlib.sha256(word.encode()).hexdigest(), 16)
+            for i in range(dim):
+                vec[i] += ((h >> (i * 2)) & 0x3) - 1.5
         norm = sum(x * x for x in vec) ** 0.5
         if norm > 0:
             embeddings.append([x / norm for x in vec])
         else:
-            embeddings.append([1.0 / 4.0] * 16)
+            embeddings.append([1.0 / (dim ** 0.5)] * dim)
     return embeddings
 
 
@@ -55,7 +63,7 @@ def setup_test_vector_store(temp_dir):
         collection_name="test_rag_chunks",
         embedder=mock_embedder,
     )
-    store.ensure_collection(vector_dim=16)
+    store.ensure_collection(vector_dim=64)
     set_vector_store(store)
     yield store
     try:

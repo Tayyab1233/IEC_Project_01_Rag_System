@@ -19,7 +19,7 @@ INJECTION_QUERY_PATTERNS = [
     re.compile(r"\b(ignore|disregard|forget)\s+(all\s+)?(previous|prior|above)\s+instructions\b", re.IGNORECASE),
     re.compile(r"\b(reveal|show|print|output|display)\s+(me\s+)?(your\s+)?(system\s+prompt|initial\s+prompt|developer\s+instructions)\b", re.IGNORECASE),
     re.compile(r"\b(you\s+are\s+now|now\s+act\s+as|pretend\s+you\s+are)\s+(an?\s+)?(unrestricted|developer|dan|jailbroken|god\s+mode)\b", re.IGNORECASE),
-    re.compile(r"\b(jailbreak|dan\s+mode|developer\s+mode|override\s+rules|bypass\s+safety)\b", re.IGNORECASE),
+    re.compile(r"\b(jailbreak|dan\s+mode|developer\s+mode|override\s+(all\s+)?(safety\s+)?rules?|bypass\s+safety|canary\b|exfiltrat\w+)\b", re.IGNORECASE),
     re.compile(r"<\s*(system|instruction|admin|developer)\s*>", re.IGNORECASE),
 ]
 
