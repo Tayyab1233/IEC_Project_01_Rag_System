@@ -17,13 +17,24 @@ from backend.app.main import create_app
 
 
 def mock_embedder(texts: List[str]) -> List[List[float]]:
-    """Fast deterministic mock embedder generating 16-dim normalized vectors."""
+    """Fast deterministic mock embedder generating distinct 16-dim normalized vectors."""
+    import hashlib
+
     embeddings = []
-    for idx, text in enumerate(texts):
-        val = ((len(text) % 50) + idx + 1) / 100.0
-        vec = [val] * 16
-        norm = sum(x * x for x in vec) ** 0.5 or 1.0
-        embeddings.append([x / norm for x in vec])
+    for text in texts:
+        vec = [0.0] * 16
+        words = text.lower().split()
+        if not words:
+            words = ["empty"]
+        for word in words:
+            h = int(hashlib.md5(word.encode()).hexdigest(), 16)
+            for i in range(16):
+                vec[i] += ((h >> (i * 4)) & 0xF) - 7.5
+        norm = sum(x * x for x in vec) ** 0.5
+        if norm > 0:
+            embeddings.append([x / norm for x in vec])
+        else:
+            embeddings.append([1.0 / 4.0] * 16)
     return embeddings
 
 
@@ -35,9 +46,9 @@ def temp_dir():
     shutil.rmtree(d, ignore_errors=True)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def setup_test_vector_store(temp_dir):
-    """Configure a temporary vector store using mock embeddings for test isolation."""
+    """Configure a single session-wide test vector store using mock embeddings."""
     qdrant_path = os.path.join(temp_dir, "test_qdrant")
     store = VectorStore(
         path=qdrant_path,
@@ -47,6 +58,10 @@ def setup_test_vector_store(temp_dir):
     store.ensure_collection(vector_dim=16)
     set_vector_store(store)
     yield store
+    try:
+        store.client.close()
+    except Exception:
+        pass
     set_vector_store(None)
 
 

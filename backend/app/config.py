@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
 
     # Pinned Model IDs & Generation Parameters
-    GENERATION_MODEL: str = "gemini-3.5-flash-lite"
+    GENERATION_MODEL: str = "gemini-2.5-flash"
     EMBEDDING_MODEL: str = "BAAI/bge-m3"
     FALLBACK_EMBEDDING_MODEL: str = "models/gemini-embedding-001"
     TEMPERATURE: float = 0.1
@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     RETRIEVAL_TOP_K: int = 18
     CONTEXT_CHUNKS: int = 15
     MIN_SIMILARITY: float = 0.25
+    MIN_RELEVANCE_SCORE: float = 0.25
     RRF_K: int = 60
 
     # Guardrails & Safety Parameters

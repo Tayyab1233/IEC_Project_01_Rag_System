@@ -118,6 +118,80 @@ class AskResponse(BaseModel):
     request_id: str = Field(..., description="Unique request tracing ID")
 
 
+class ChatRequest(BaseModel):
+    """Request payload for the /chat query endpoint."""
+
+    message: str = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="User question or prompt (max 1000 characters)",
+    )
+    top_k: Optional[int] = Field(
+        default=None,
+        ge=1,
+        le=50,
+        description="Optional maximum number of candidate chunks to retrieve",
+    )
+    filter_document_ids: Optional[List[str]] = Field(
+        default=None,
+        description="Optional list of document UUIDs to restrict retrieval scope",
+    )
+
+
+class ChatCitation(BaseModel):
+    """Structured citation metadata extracted from the generated answer."""
+
+    document_id: str = Field(..., description="UUID of source document")
+    file_name: str = Field(..., description="Original filename of source document")
+    page_or_section: str = Field(..., description="Page or section citation label")
+    chunk_index: int = Field(..., description="Index of cited chunk within document")
+    citation_tag: str = Field(..., description="Formatted tag e.g. [File: name | Location: loc]")
+    snippet: str = Field(..., description="Context snippet supporting the citation")
+
+
+class RetrievedChunkMetadata(BaseModel):
+    """Metadata and scoring for a retrieved chunk evaluated during RRF."""
+
+    chunk_id: str
+    document_id: str
+    file_name: str
+    page_or_section: str
+    chunk_index: int
+    text: str
+    score: float
+    dense_score: Optional[float] = None
+    bm25_score: Optional[float] = None
+
+
+class ChatResponse(BaseModel):
+    """Response payload for the grounded /chat endpoint."""
+
+    answer: str = Field(..., description="Grounded response or refusal message")
+    refused: bool = Field(
+        default=False,
+        description="True if query was refused due to insufficient evidence",
+    )
+    refusal_reason: Optional[str] = Field(
+        default=None,
+        description="Detailed explanation if query was refused",
+    )
+    citations: List[ChatCitation] = Field(
+        default_factory=list,
+        description="Source citations supporting the answer",
+    )
+    retrieved_chunks: List[RetrievedChunkMetadata] = Field(
+        default_factory=list,
+        description="Top retrieved context chunks evaluated",
+    )
+    model: str = Field(..., description="LLM model identifier used for generation")
+    latency_ms: float = Field(..., description="Total execution latency in milliseconds")
+    prompt_tokens: Optional[int] = Field(default=None, description="Input prompt token count")
+    completion_tokens: Optional[int] = Field(default=None, description="Output completion token count")
+    total_tokens: Optional[int] = Field(default=None, description="Total tokens consumed")
+    request_id: str = Field(..., description="Unique request tracing ID")
+
+
 class LLMAnswerSchema(BaseModel):
     """Pydantic schema passed to Gemini structured JSON generation."""
 

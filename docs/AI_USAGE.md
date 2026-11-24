@@ -138,3 +138,58 @@ Commit completed work to `feature/ingestion` with message `"feat(ingestion): add
   - [tests/test_ingestion.py](file:///d:/IEC_Project_01_Rag_System/tests/test_ingestion.py)
   - [notebooks/01_ingestion_pipeline.ipynb](file:///d:/IEC_Project_01_Rag_System/notebooks/01_ingestion_pipeline.ipynb)
   - [docs/AI_USAGE.md](file:///d:/IEC_Project_01_Rag_System/docs/AI_USAGE.md)
+
+
+### Entry #3: Move 3 - Hybrid Retrieval, Safety Guardrails, Grounded Generation, and Chat Endpoint
+- **Step / Prompt #**: 3
+- **Date & Time**: 2026-11-24 16:11:04 +05:00
+- **Model & Tool Used**: `Antigravity IDE - Gemini 3.8 Flash High`
+- **Key Configuration/Settings**:
+  - `GENERATION_MODEL`: `gemini-2.5-flash`
+  - `EMBEDDING_MODEL`: `BAAI/bge-m3` (Fallback: `models/gemini-embedding-001`)
+  - `MIN_RELEVANCE_SCORE`: 0.25
+  - `MIN_SIMILARITY`: 0.25
+  - `RRF_K`: 60
+  - `RETRIEVAL_TOP_K`: 18
+  - `CONTEXT_CHUNKS`: 15
+  - `TEMPERATURE`: 0.1
+  - `MAX_QUESTION_CHARS`: 1000
+  - `DEFAULT_INTERPRETER`: `D:\conda_envs\dsc293_env\python.exe`
+- **Exact Prompt Text**:
+```text
+Do NOT run any Python/Conda environment discovery commands—our verified interpreter is strictly `D:\conda_envs\dsc293_env\python.exe`. First, create `.vscode/settings.json` with `{"python.defaultInterpreterPath": "D:\\conda_envs\\dsc293_env\\python.exe"}` so the IDE locks onto our Conda environment permanently. Follow `GEMINI.md` (remember to append Entry #3 to `docs/AI_USAGE.md`).
+
+Next, merge `feature/ingestion` into `main` cleanly, then create and switch to a new branch `feature/rag-chat` for Move 3: Hybrid Retrieval, Safety Guardrails, Grounded Generation, and Chat Endpoint. Write all files first before running any terminal command:
+
+1. `backend/app/rag/retriever.py`:
+   - Implement multi-tenant hybrid retrieval strictly filtered by `user_id` (and optional `document_ids` filter).
+   - Combine dense vector similarity from Qdrant (`rag_chunks`) with BM25 lexical scoring over the user's chunks (using `rank_bm25.BM25Okapi` if installed, or a clean pure-Python Okapi BM25 fallback) via Reciprocal Rank Fusion (RRF, k=60), returning the top-k ranked chunks with normalized relevance scores and citation metadata (`document_id`, `file_name`, `page_or_section`, `chunk_index`, `text`).
+2. `backend/app/rag/guardrails.py`:
+   - Input guardrail: detect direct prompt-injection or jailbreak attempts in user queries (e.g., "ignore previous instructions", "reveal system prompt", role-override patterns) and raise a unified `400 Bad Request` error before calling the LLM.
+   - Evidence threshold check: if no chunks are retrieved or the top similarity score falls below `MIN_RELEVANCE_SCORE` from `config.py`, return a structured refusal (`refused=True`, clear explanation that the uploaded documents do not contain enough evidence) without hallucinating.
+   - Context isolation helper: wrap retrieved chunks in `<context>` XML tags with explicit system instructions to ignore any imperative commands embedded inside document chunks.
+3. `backend/app/rag/generator.py`:
+   - Use the `google-genai` SDK (`genai.Client()`, model `gemini-2.5-flash` from `config.py`, low temperature `0.1`) to generate answers grounded strictly in the `<context>` chunks.
+   - Enforce inline citations formatted as `[File: {file_name} | Location: {page_or_section}]` and extract structured `citations`, `model`, `latency_ms`, and token usage metadata into the response schema.
+4. `backend/app/rag/service.py` & `backend/app/main.py` route:
+   - Wire `POST /chat` (`200 OK`) delegating purely to `rag/service.py` (keeping `main.py` thin) and persist query/response audit logs in SQLite.
+5. `tests/test_chat.py` & `notebooks/02_retrieval_and_rag.ipynb`:
+   - Add automated tests in `tests/test_chat.py` (mocking Gemini API calls for fast offline testing) verifying: grounded citation answers, cross-tenant isolation (`user_b` cannot retrieve `user_a`'s docs), out-of-scope refusal when score is below threshold, and `400` rejection on query prompt injection.
+   - Create `notebooks/02_retrieval_and_rag.ipynb` demonstrating hybrid RRF retrieval, guardrail checks, and grounded citation output.
+
+Only after writing all files, run `D:\conda_envs\dsc293_env\python.exe -m pytest -v` to confirm all tests pass, then commit to `feature/rag-chat` with message `"feat(rag): add hybrid RRF retriever, safety guardrails, and grounded /chat endpoint"`.
+```
+- **Files Created/Updated**:
+  - [.vscode/settings.json](file:///d:/IEC_Project_01_Rag_System/.vscode/settings.json)
+  - [backend/app/config.py](file:///d:/IEC_Project_01_Rag_System/backend/app/config.py)
+  - [backend/app/schemas.py](file:///d:/IEC_Project_01_Rag_System/backend/app/schemas.py)
+  - [backend/app/rag/__init__.py](file:///d:/IEC_Project_01_Rag_System/backend/app/rag/__init__.py)
+  - [backend/app/rag/retriever.py](file:///d:/IEC_Project_01_Rag_System/backend/app/rag/retriever.py)
+  - [backend/app/rag/guardrails.py](file:///d:/IEC_Project_01_Rag_System/backend/app/rag/guardrails.py)
+  - [backend/app/rag/generator.py](file:///d:/IEC_Project_01_Rag_System/backend/app/rag/generator.py)
+  - [backend/app/rag/service.py](file:///d:/IEC_Project_01_Rag_System/backend/app/rag/service.py)
+  - [backend/app/rag/router.py](file:///d:/IEC_Project_01_Rag_System/backend/app/rag/router.py)
+  - [backend/app/main.py](file:///d:/IEC_Project_01_Rag_System/backend/app/main.py)
+  - [tests/test_chat.py](file:///d:/IEC_Project_01_Rag_System/tests/test_chat.py)
+  - [notebooks/02_retrieval_and_rag.ipynb](file:///d:/IEC_Project_01_Rag_System/notebooks/02_retrieval_and_rag.ipynb)
+  - [docs/AI_USAGE.md](file:///d:/IEC_Project_01_Rag_System/docs/AI_USAGE.md)
