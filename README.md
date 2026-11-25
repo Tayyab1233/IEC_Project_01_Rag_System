@@ -47,7 +47,7 @@ flowchart TD
     subgraph GenerationLayer["Grounded Generation"]
         ThresholdCheck -- "No (Insufficient)" --> Refusal["Structured Refusal (refused=True)"]
         ThresholdCheck -- "Yes" --> ContextPack["Isolated XML Context (<context>)"]
-        ContextPack --> LLM["Google GenAI (gemini-2.5-flash, temp=0.1)"]
+        ContextPack --> LLM["Google GenAI (gemini-3.8-flash, temp=0.1)"]
         LLM --> CitationParser["Citation Parser ([File: ... | Location: ...])"]
         CitationParser --> Response["Grounded Answer + Citations + Audit Log"]
     end
@@ -82,7 +82,7 @@ flowchart TD
 - **Context Isolation**: Encapsulates chunks inside `<context>` XML tags with system instructions treating chunk text as untrusted data; sanitizes delimiter collision tags.
 
 ### 6. Grounded Generation & Citation Verification
-- Powered by `google-genai` SDK with model `gemini-2.5-flash` at `temperature=0.1`.
+- Powered by `google-genai` SDK with model `gemini-3.8-flash` at `temperature=0.1`.
 - Enforces and extracts inline citations formatted as `[File: {file_name} | Location: {page_or_section}]`.
 
 ---

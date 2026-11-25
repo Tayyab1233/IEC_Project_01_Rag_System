@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         const latencyBadge = `<span class="badge badge-outline">${data.latency_ms || 0}ms</span>`;
-        const modelBadge = `<span class="badge badge-accent">${data.model || "gemini-2.5-flash"}</span>`;
+        const modelBadge = `<span class="badge badge-accent">${data.model || "gemini-3.8-flash"}</span>`;
         const chunksCount = data.retrieved_chunks ? data.retrieved_chunks.length : 0;
 
         let chunksInspectionHtml = "";

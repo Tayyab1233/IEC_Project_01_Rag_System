@@ -199,7 +199,7 @@ async def run_evaluation(
                 return (
                     "There is insufficient information in the provided documents to answer this question.",
                     {
-                        "model": "gemini-2.5-flash-offline-mock",
+                        "model": "gemini-3.8-flash-offline-mock",
                         "prompt_tokens": 100,
                         "completion_tokens": 15,
                         "total_tokens": 115,
@@ -208,7 +208,7 @@ async def run_evaluation(
             tags = [line.strip() for line in ctx.splitlines() if line.strip().startswith("[File:")]
             ptag = tags[0] if tags else "[File: document.txt | Location: General]"
             return f"Factual grounded response {ptag} addressing {q}", {
-                "model": "gemini-2.5-flash-offline-mock",
+                "model": "gemini-3.8-flash-offline-mock",
                 "prompt_tokens": 100,
                 "completion_tokens": 20,
                 "total_tokens": 120,
