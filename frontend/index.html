@@ -125,7 +125,26 @@
                 </form>
             </div>
         </section>
-    </main>
+
+    
+
+    
+      <!-- Right Panel: Retrieved Chunks History -->
+      <aside class="panel chunks-history-panel" id="chunks-history-panel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2>Retrieved Chunks History</h2>
+            <span class="badge" id="history-turn-count">0 Turns</span>
+          </div>
+          <button type="button" class="btn-ghost-sm" id="clear-chunk-history-btn" title="Clear chunk history">Clear</button>
+        </div>
+        <div class="chunks-history-list" id="chunks-history-list">
+          <div class="empty-history-state">
+            <p>Submit a grounded query to inspect and track retrieved evidence chunks, relevance scores, and source citations across turns.</p>
+          </div>
+        </div>
+      </aside>
+</main>
 
     <script src="/ui/app.js"></script>
 </body>
