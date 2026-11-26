@@ -18,7 +18,7 @@ jobs:
         run: |
           git rm -rf --ignore-unmatch .github
           grep -qi '^gradio' requirements.txt || echo 'gradio>=4.44.0' >> requirements.txt
-          printf '%s\n' '---' 'title: Production RAG Service' 'emoji: ??' 'colorFrom: blue' 'colorTo: slate' 'sdk: gradio' 'app_file: app.py' 'pinned: false' '---' '' > /tmp/hf_readme.md
+          printf '%s\n' '---' 'title: Production RAG Service' 'emoji: 🔍' 'colorFrom: blue' 'colorTo: indigo' 'sdk: gradio' 'app_file: app.py' 'pinned: false' '---' '' > /tmp/hf_readme.md
           cat README.md >> /tmp/hf_readme.md
           mv /tmp/hf_readme.md README.md
 
