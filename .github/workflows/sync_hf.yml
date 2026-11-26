@@ -1,0 +1,35 @@
+name: Sync to Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Hugging Face Space files
+        run: |
+          git rm -rf --ignore-unmatch .github
+          grep -qi '^gradio' requirements.txt || echo 'gradio>=4.44.0' >> requirements.txt
+          printf '%s\n' '---' 'title: Production RAG Service' 'emoji: ??' 'colorFrom: blue' 'colorTo: slate' 'sdk: gradio' 'app_file: app.py' 'pinned: false' '---' '' > /tmp/hf_readme.md
+          cat README.md >> /tmp/hf_readme.md
+          mv /tmp/hf_readme.md README.md
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "chore(deploy): sync Gradio Space build" || true
+          git push --force https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME} HEAD:main
